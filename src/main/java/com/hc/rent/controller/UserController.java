@@ -4,11 +4,14 @@ package com.hc.rent.controller;
 import com.hc.rent.common.Result;
 import com.hc.rent.dto.request.UpdateProfileRequest;
 import com.hc.rent.dto.response.UserProfileResponse;
+import com.hc.rent.exception.BusinessException;
 import com.hc.rent.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -43,7 +46,6 @@ public class UserController {
     public Result<UserProfileResponse> updateProfile(@RequestBody UpdateProfileRequest request){
         return Result.success(userService.updateUserProfile(request));
     }
-
 
 
 

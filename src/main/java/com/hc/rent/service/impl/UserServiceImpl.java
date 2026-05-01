@@ -13,6 +13,7 @@ import com.hc.rent.security.JwtUtil;
 import com.hc.rent.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -29,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
 
 
     /**
@@ -76,8 +79,6 @@ public class UserServiceImpl implements UserService {
         String token = jwtUtil.generateToken(user);
         return buildAuthResponse(token, user);
     }
-
-
 
 
     /**
@@ -213,5 +214,26 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    /**
+     * log out function
+     *
+     * @param token
+     */
+    public void logout(String token) {
+        // Get remaining expiration time of token in milliseconds
+        long expiration = jwtUtil.parseToken(token)
+                .getExpiration()
+                .getTime() - System.currentTimeMillis();
 
+        // Only blacklist if token hasn't expired yet
+        if (expiration > 0) {
+            redisTemplate.opsForValue().set(
+                    "blacklist:" + token,
+                    "1",
+                    expiration,
+                    TimeUnit.MILLISECONDS
+            );
+            log.info("Token blacklisted, expires in {}ms", expiration);
+        }
+    }
 }

@@ -21,4 +21,7 @@ public interface UserService {
 
     // Update UserProfile
     UserProfileResponse updateUserProfile(UpdateProfileRequest request);
+
+    // log out
+    void logout(String token);
 }
