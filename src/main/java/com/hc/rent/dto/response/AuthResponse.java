@@ -4,8 +4,6 @@ import com.hc.rent.entity.User;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Set;
-
 @Data
 @Builder
 public class AuthResponse {
@@ -14,7 +12,7 @@ public class AuthResponse {
     private Long userId;
     private String firstName;
     private String lastName;
-    private Set<User.Role> roles;
+    private User.Role role;
     private String email;
     private String phone;
 }

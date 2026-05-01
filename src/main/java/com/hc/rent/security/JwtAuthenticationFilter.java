@@ -16,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -36,27 +35,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Long userId = jwtUtil.getUserId(token);
                 String subject = jwtUtil.getSubject(token);
-                List<String> roles = jwtUtil.getRoles(token);
+                String role = jwtUtil.getRole(token);
 
                 // Store user info in ThreadLocal for easy access in Service layer
                 UserContext.setUserId(userId);
-                UserContext.setUserRoles(roles);
-
-                // Convert List<String> roles to Spring Security authorities
-                // e.g. "LANDLORD" → ROLE_LANDLORD
-                List<SimpleGrantedAuthority> authorities = roles.stream()
-                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                        .collect(Collectors.toList());
+                UserContext.setUserRole(role);
 
                 // Set authentication in Spring Security context
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userId,
                                 null,
-                                authorities
+                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("Authenticated user: {}, roles: {}", subject, roles);
+                log.debug("Authenticated user: {}, role: {}", subject, role);
 
             } catch (Exception e) {
                 log.warn("Invalid JWT token: {}", e.getMessage());

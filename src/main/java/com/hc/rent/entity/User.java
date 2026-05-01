@@ -9,15 +9,19 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"email", "role"}),
+                @UniqueConstraint(columnNames = {"phone", "role"})
+        }
+)
 public class User {
 
     @Id
@@ -25,7 +29,7 @@ public class User {
     private Long id;
 
     // Nullable because user can register with phone instead
-    @Column(unique = true, length = 100)
+    @Column(length = 100)
     private String email;
 
     @Column(nullable = false, length = 100)
@@ -41,21 +45,15 @@ public class User {
     private String middleName;
 
     // Nullable because user can register with email instead
-    @Column(unique = true, length = 20)
+    @Column(length = 20)
     private String phone;
 
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    // One user can have multiple roles (e.g. both LANDLORD and TENANT)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id")
-    )
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", length = 20)
-    private Set<Role> roles = new HashSet<>();
+    @Column(nullable = false, length = 20)
+    private Role role;
 
     @Column(nullable = false)
     private Boolean enabled = true;

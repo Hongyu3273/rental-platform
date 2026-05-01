@@ -46,21 +46,17 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(400, "Email or phone number is required");
         }
 
-        // Check email uniqueness if provided
+        // Check email + role uniqueness if email provided
         if (StringUtils.hasText(request.getEmail()) &&
-                userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException(400, "Email already exists");
+                userRepository.existsByEmailAndRole(request.getEmail(), request.getRole())) {
+            throw new BusinessException(400, "Email already registered for this role");
         }
 
-        // Check phone uniqueness if provided
+        // Check phone + role uniqueness if phone provided
         if (StringUtils.hasText(request.getPhone()) &&
-                userRepository.existsByPhone(request.getPhone())) {
-            throw new BusinessException(400, "Phone number already exists");
+                userRepository.existsByPhoneAndRole(request.getPhone(), request.getRole())) {
+            throw new BusinessException(400, "Phone number already registered for this role");
         }
-
-        // Build initial roles set
-        Set<User.Role> roles = new HashSet<>();
-        roles.add(request.getRole());
 
         // Build and save new user
         User user = User.builder()
@@ -70,18 +66,18 @@ public class UserServiceImpl implements UserService {
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles(roles)
+                .role(request.getRole())
                 .enabled(true)
                 .build();
 
         userRepository.save(user);
         log.info("New user registered: {}", user.getEmail() != null ? user.getEmail() : user.getPhone());
 
-        // Generate JWT token
         String token = jwtUtil.generateToken(user);
-
         return buildAuthResponse(token, user);
     }
+
+
 
 
     /**
@@ -119,46 +115,16 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /**
-     * Addd role to a user
-     *
-     * @param userId
-     * @param role
-     */
-    @Override
-    @Transactional
-    public void addRole(Long userId, String role) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(404, "User not found"));
-
-        // Convert string to Role enum
-        User.Role newRole;
-        try {
-            newRole = User.Role.valueOf(role.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException(400, "Invalid role: " + role);
-        }
-
-        // Check if user already has this role
-        if (user.getRoles().contains(newRole)) {
-            throw new BusinessException(400, "User already has role: " + role);
-        }
-
-        user.getRoles().add(newRole);
-        userRepository.save(user);
-        log.info("Role {} added to user {}", role, userId);
-    }
-
-
     // Find user by email or phone based on what was provided in request
     private User findUserByIdentifier(LoginRequest request) {
         if (StringUtils.hasText(request.getEmail())) {
-            return userRepository.findByEmail(request.getEmail())
+            return userRepository.findByEmailAndRole(request.getEmail(), request.getRole())
                     .orElseThrow(() -> new BusinessException(401, "Invalid credentials"));
         }
-        return userRepository.findByPhone(request.getPhone())
+        return userRepository.findByPhoneAndRole(request.getPhone(), request.getRole())
                 .orElseThrow(() -> new BusinessException(401, "Invalid credentials"));
     }
+
 
     // Build AuthResponse from token and user
     private AuthResponse buildAuthResponse(String token, User user) {
@@ -167,7 +133,7 @@ public class UserServiceImpl implements UserService {
                 .userId(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .roles(user.getRoles())
+                .role(user.getRole())
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .build();
@@ -195,7 +161,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
-                .roles(user.getRoles())
+                .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
@@ -212,11 +178,9 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user profile");
         Long userId = UserContext.getUserId();
 
-        // Find user by id
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(404, "User not found"));
 
-        // Only update fields that are provided
         if (StringUtils.hasText(request.getFirstName())) {
             user.setFirstName(request.getFirstName());
         }
@@ -233,11 +197,9 @@ public class UserServiceImpl implements UserService {
             user.setAvatarUrl(request.getAvatarUrl());
         }
 
-        // Save updated user
         userRepository.save(user);
         log.info("User profile updated: {}", userId);
 
-        // Build and return response
         return UserProfileResponse.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
@@ -246,7 +208,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
-                .roles(user.getRoles())
+                .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

@@ -14,8 +14,6 @@ public interface UserService {
     // Login with email or phone
     AuthResponse login(LoginRequest request);
 
-    // Add a new role to existing user
-    void addRole(Long userId, String role);
 
     // Get user profile
     UserProfileResponse getUserProfile();

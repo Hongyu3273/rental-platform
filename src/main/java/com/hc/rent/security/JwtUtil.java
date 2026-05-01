@@ -11,9 +11,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
@@ -28,17 +26,11 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // Generate token, roles stored as a list of strings
+    // Generate token, single role stored as string
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
-
-        // Convert Set<Role> to List<String> e.g. ["LANDLORD", "TENANT"]
-        List<String> roles = user.getRoles()
-                .stream()
-                .map(User.Role::name)
-                .collect(Collectors.toList());
-        claims.put("roles", roles);
+        claims.put("role", user.getRole().name());
 
         // Use email as subject if available, otherwise use phone
         String subject = user.getEmail() != null ? user.getEmail() : user.getPhone();
@@ -71,10 +63,9 @@ public class JwtUtil {
         return parseToken(token).get("userId", Long.class);
     }
 
-    // Get roles as List<String> from token e.g. ["LANDLORD", "TENANT"]
-    @SuppressWarnings("unchecked")
-    public List<String> getRoles(String token) {
-        return (List<String>) parseToken(token).get("roles");
+    // Get single role from token
+    public String getRole(String token) {
+        return (String) parseToken(token).get("role");
     }
 
     // Validate token (signature + expiration)
