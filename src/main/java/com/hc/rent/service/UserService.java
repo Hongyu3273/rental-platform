@@ -2,7 +2,9 @@ package com.hc.rent.service;
 
 import com.hc.rent.dto.request.LoginRequest;
 import com.hc.rent.dto.request.RegisterRequest;
+import com.hc.rent.dto.request.UpdateProfileRequest;
 import com.hc.rent.dto.response.AuthResponse;
+import com.hc.rent.dto.response.UserProfileResponse;
 
 public interface UserService {
 
@@ -14,4 +16,11 @@ public interface UserService {
 
     // Add a new role to existing user
     void addRole(Long userId, String role);
+
+    // Get user profile
+    UserProfileResponse getUserProfile();
+
+
+    // Update UserProfile
+    UserProfileResponse updateUserProfile(UpdateProfileRequest request);
 }

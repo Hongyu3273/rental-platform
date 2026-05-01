@@ -2,6 +2,8 @@ package com.hc.rent.repository;
 
 import com.hc.rent.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -20,4 +22,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Check if phone already exists (for registration)
     boolean existsByPhone(String phone);
+
 }

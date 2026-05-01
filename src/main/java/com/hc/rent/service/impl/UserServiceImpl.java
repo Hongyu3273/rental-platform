@@ -1,8 +1,11 @@
 package com.hc.rent.service.impl;
 
+import com.hc.rent.common.UserContext;
 import com.hc.rent.dto.request.LoginRequest;
 import com.hc.rent.dto.request.RegisterRequest;
+import com.hc.rent.dto.request.UpdateProfileRequest;
 import com.hc.rent.dto.response.AuthResponse;
+import com.hc.rent.dto.response.UserProfileResponse;
 import com.hc.rent.entity.User;
 import com.hc.rent.exception.BusinessException;
 import com.hc.rent.repository.UserRepository;
@@ -27,6 +30,13 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+
+    /**
+     * User register
+     *
+     * @param request
+     * @return
+     */
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -73,6 +83,13 @@ public class UserServiceImpl implements UserService {
         return buildAuthResponse(token, user);
     }
 
+
+    /**
+     * Login Function
+     *
+     * @param request
+     * @return
+     */
     @Override
     public AuthResponse login(LoginRequest request) {
 
@@ -101,6 +118,13 @@ public class UserServiceImpl implements UserService {
         return buildAuthResponse(token, user);
     }
 
+
+    /**
+     * Addd role to a user
+     *
+     * @param userId
+     * @param role
+     */
     @Override
     @Transactional
     public void addRole(Long userId, String role) {
@@ -125,6 +149,7 @@ public class UserServiceImpl implements UserService {
         log.info("Role {} added to user {}", role, userId);
     }
 
+
     // Find user by email or phone based on what was provided in request
     private User findUserByIdentifier(LoginRequest request) {
         if (StringUtils.hasText(request.getEmail())) {
@@ -147,4 +172,84 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getPhone())
                 .build();
     }
+
+    /**
+     * get user profile
+     *
+     * @return
+     */
+    public UserProfileResponse getUserProfile() {
+        log.info("Fetching user profile");
+        Long userId = UserContext.getUserId();
+
+        // Find user by id
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(404, "User not found"));
+
+        // Build and return response
+        return UserProfileResponse.builder()
+                .userId(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .middleName(user.getMiddleName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .avatarUrl(user.getAvatarUrl())
+                .roles(user.getRoles())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+
+    /**
+     * update User Profile
+     *
+     * @param request
+     * @return
+     */
+    @Transactional
+    public UserProfileResponse updateUserProfile(UpdateProfileRequest request) {
+        log.info("Updating user profile");
+        Long userId = UserContext.getUserId();
+
+        // Find user by id
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(404, "User not found"));
+
+        // Only update fields that are provided
+        if (StringUtils.hasText(request.getFirstName())) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (StringUtils.hasText(request.getLastName())) {
+            user.setLastName(request.getLastName());
+        }
+        if (StringUtils.hasText(request.getMiddleName())) {
+            user.setMiddleName(request.getMiddleName());
+        }
+        if (StringUtils.hasText(request.getPhone())) {
+            user.setPhone(request.getPhone());
+        }
+        if (StringUtils.hasText(request.getAvatarUrl())) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+
+        // Save updated user
+        userRepository.save(user);
+        log.info("User profile updated: {}", userId);
+
+        // Build and return response
+        return UserProfileResponse.builder()
+                .userId(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .middleName(user.getMiddleName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .avatarUrl(user.getAvatarUrl())
+                .roles(user.getRoles())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+
 }
