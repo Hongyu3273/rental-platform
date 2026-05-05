@@ -40,8 +40,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
+                                "/api/properties/**",
                                 "/api-docs/**"
-                        ).permitAll()
+                                ).permitAll()
                         // Landlord only endpoints
                         .requestMatchers("/api/landlord/**").hasRole("LANDLORD")
                         // Tenant only endpoints
