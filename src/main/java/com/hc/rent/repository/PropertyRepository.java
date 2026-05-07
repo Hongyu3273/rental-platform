@@ -25,7 +25,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     @Query("SELECT p FROM Property p " +
             "LEFT JOIN FETCH p.landlord " +
             "WHERE p.status = 'AVAILABLE' " +
-            "AND (:suburb IS NULL OR LOWER(p.suburb) LIKE LOWER(CONCAT('%', :suburb, '%'))) " +
+            "AND (:suburb IS NULL OR LOWER(p.suburb) LIKE LOWER(CONCAT('%', CAST(:suburb AS string), '%'))) " +
             "AND (:minRent IS NULL OR p.weeklyRent >= :minRent) " +
             "AND (:maxRent IS NULL OR p.weeklyRent <= :maxRent) " +
             "AND (:bedrooms IS NULL OR p.bedrooms = :bedrooms) " +

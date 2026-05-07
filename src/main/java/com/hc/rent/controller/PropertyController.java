@@ -9,6 +9,7 @@ import com.hc.rent.service.PropertyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -23,7 +24,7 @@ public class PropertyController {
     @Operation(summary = "Search properties with filters and pagination")
     @GetMapping
     public Result<PageResponse<PropertySummaryResponse>> searchProperties(
-            PropertySearchRequest request) {
+            @ParameterObject @ModelAttribute PropertySearchRequest request) {
         return Result.success(propertyService.searchProperties(request));
     }
 

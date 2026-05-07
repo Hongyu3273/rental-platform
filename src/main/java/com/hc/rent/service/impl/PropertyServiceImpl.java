@@ -77,11 +77,11 @@ public class PropertyServiceImpl implements PropertyService {
 
     // Convert Property to PropertySummaryResponse
     private PropertySummaryResponse buildSummaryResponse(Property property) {
-        String coverImageUrl = property.getImages().stream()
-                .filter(PropertyImage::getIsCover)
-                .findFirst()
-                .map(PropertyImage::getImageUrl)
-                .orElse(null);
+//        String coverImageUrl = property.getImages().stream()
+//                .filter(PropertyImage::getIsCover)
+//                .findFirst()
+//                .map(PropertyImage::getImageUrl)
+//                .orElse(null);
 
         return PropertySummaryResponse.builder()
                 .id(property.getId())
@@ -96,7 +96,7 @@ public class PropertyServiceImpl implements PropertyService {
                 .status(property.getStatus())
                 .furnishedType(property.getFurnishedType())
                 .petsAllowed(property.getPetsAllowed())
-                .coverImageUrl(coverImageUrl)
+                .coverImageUrl(null)  //Will be populated after S3 implementation
                 .availableFrom(property.getAvailableFrom())
                 .build();
     }
